@@ -48,7 +48,6 @@ void second_test(int argc, char const *argv[]){
 int main(int argc, char const *argv[])
 {
     pthread_t p1, p2;
-    int rc;
     printf("main: begin\n");
     pthread_create(&p1, NULL, first_test, "A");
     pthread_create(&p2, NULL, second_test, "B");
