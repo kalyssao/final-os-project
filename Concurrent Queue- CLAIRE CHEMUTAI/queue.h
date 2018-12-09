@@ -38,7 +38,7 @@ void Queue_Enqueue(queue_t *q, int value) {
  pthread_mutex_unlock(&q->tailLock);
 }
 
-int Queue_Dequeue(queue_t *q, int value) {
+int Queue_Dequeue(queue_t *q) {
  pthread_mutex_lock(&q->headLock);
  node_t *tmp = q->head;
  node_t *newHead = tmp->next;
