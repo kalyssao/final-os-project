@@ -13,14 +13,12 @@ void first_test(int argc, char const *argv[]){
 
     Queue_Init(&q);
     printf("Queue in thread 1 initialized successfully\n");
+    //queue added
     Queue_Enqueue(&q, 1);
     printf("T1:Added 1 \n");
-    Queue_Enqueue(&q, 2);
-    printf("T1:Added 2 \n");
-    Queue_Enqueue(&q, 3);
-    printf("T1:Added 3 \n");
-    Queue_Dequeue(&q, 2);
-    printf("T1:Removed 2 \n");
+    //queue dequeued
+    Queue_Dequeue(&q);
+    printf("queue dequeued \n");
 
 
     return;
@@ -32,14 +30,12 @@ void second_test(int argc, char const *argv[]){
 
     Queue_Init(&q);
     printf("Queue in thread 2 initialized successfully\n");
-    Queue_Enqueue(&q, 4);
-    printf("T2:Added 4 \n");
-    Queue_Enqueue(&q, 5);
-    printf("T2:Added 5 \n");
-    Queue_Enqueue(&q, 6);
-    printf("T2:Added 6 \n");
-    Queue_Dequeue(&q, 4);
-    printf("T2:Removed 4 \n");
+    //add to queue
+    Queue_Enqueue(&q, 2);
+    printf("T2:Added 2 \n");
+    //remove from queue
+    Queue_Dequeue(&q);
+    printf("T2:queue dequeued \n");
 
     return;
 
