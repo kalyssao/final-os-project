@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <pthread.h>
 
@@ -23,7 +24,6 @@ void List_Init(list_t*L) {
 }
 
 int List_Insert(list_t*L, int key) {
-// synchronization not needed
     pthread_mutex_lock(&L->lock);
     node_t*new = malloc(sizeof(node_t));
     if (new == NULL) {
@@ -53,11 +53,29 @@ int List_Lookup(list_t*L, int key) {
     return rv; // now both success and failure
 }
 
+int List_Delete(list_t*L, int key){
+    node_t*curr = L->head;
+    
+    while(curr->key != NULL) {
+        if (curr->key == key){
+            pthread_mutex_lock(&L->lock);
+            node_t*temp;
+            temp = curr->next;
+            free(curr);
+            pthread_mutex_unlock(&L->lock);
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
 typedef struct __hash_t {
     list_t lists[BUCKETS];
+    pthread_mutex_t lock;
 } hash_t;
 
 void Hash_Init(hash_t* H) {
+    pthread_mutex_init(&H->lock, NULL);
     int i;
     for (i = 0; i < BUCKETS; i++) {
         List_Init(&H->lists[i]);
@@ -65,18 +83,60 @@ void Hash_Init(hash_t* H) {
 }
 
 int Hash_Insert(hash_t*H, int key) {
+    pthread_mutex_lock(&H->lock);
     int bucket = key % BUCKETS;
+    pthread_mutex_unlock(&H->lock);
     return List_Insert(&H->lists[bucket], key);
 }
     
 int Hash_Lookup(hash_t*H, int key) {
+    pthread_mutex_lock(&H->lock);
     int bucket = key % BUCKETS;
+    pthread_mutex_unlock(&H->lock);
     return List_Lookup(&H->lists[bucket], key);
 }
 
-int main(int argc, char const *argv[])
-{
+int Hash_Delete(hash_t*H, int key)  {
+    pthread_mutex_lock(&H->lock);
+    int bucket = key % BUCKETS;
+    List_Delete(&H->lists[bucket], key);
+    pthread_mutex_unlock(&H->lock);
+}
+
+void Print_Hash(hash_t*H) {
+    for(int i; i<BUCKETS; i++){
+        if(&H->lists[i] != NULL){
+            printf("d\n", &H->lists[i]);
+        }
+        continue;
+    }
+}
+
+void ThreadOne(void){
+    struct __hash_t hash;
+    Hash_Init(&hash);
+    Hash_Insert(&hash, 27);
+}
+
+void ThreadTwo(void){
+    struct __hash_t hash;
+    Hash_Init(&hash);
+    Hash_Insert(&hash, 300);
+    Print_Hash(&hash);
+
+}
+
+
+int main(int argc, char const *argv[]) {
+
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, ThreadTwo, NULL);
+    pthread_create(&t2, NULL, ThreadOne, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
     
-    List_Init(a_list *l);
     return 0;
 }

@@ -5,7 +5,7 @@
 
 #define MAX_HASH  1027
 #define NUMTHREADS 2
-pthread_t t [ NUMTHREADS ];
+pthread_t t1, t2;
 
 typedef struct HashItem {
     char *key;
@@ -37,7 +37,7 @@ void deleteItem(HashItem *table[], const char *key) {
 
     while (*link) {
         HashItem *tmp = *link;
-        //pthread_mutex_init(&->lock, NULL)
+        pthread_mutex_init ( &HashItem->lock, NULL);
         if (strcmp(tmp->key, key) == 0) {
             *link = tmp->next;  // unlink the list node
             freeItem(tmp);
@@ -53,6 +53,7 @@ void insertItem(HashItem *table[], const char *key, const char *value) {
     unsigned int code = hashCode(key);
     HashItem *item = malloc(sizeof(*item));
     if (item != NULL) {
+        pthread_mutex_lock(&c->lock, NULL);
         item->key = strdup(key);
         item->value = strdup(value);
         item->next = table[code];
@@ -60,7 +61,7 @@ void insertItem(HashItem *table[], const char *key, const char *value) {
     }
 }
 
-// displaying items
+// displaying hash table elements
 void displayHashTable(HashItem *table[]) {
     for (int i = 0; i < MAX_HASH; i++) {
         for (HashItem *tmp = table[i]; tmp; tmp = tmp->next) {
@@ -69,25 +70,30 @@ void displayHashTable(HashItem *table[]) {
     }
 }
 
+// testing thread 1
 void *myThreadOne(void *arg){
-    insertItem((HashItem *)arg, "Bart", "Simpson");
+    insertItem((HashItem **)arg, "Bart", "Simpson");
     HashItem * table = (HashItem *)arg;
+    deleteItem((HashItem **)arg, "Lisa");
+    return 0;
 }
 
+// testing thread 2
 void *myThreadTwo(void *arg){
-    insertItem((HashItem *)arg, "Lisa", "Simpson");
+    insertItem((HashItem **)arg, "Lisa", "Simpson");
     HashItem * table = (HashItem *)arg;
+    return 0;
 }
 
 int main(int argc, char const *argv[]) {
     HashItem *table[MAX_HASH] = { 0 };
 
-    pthread_create(&t[0], NULL, myThreadOne, (void *)table);
-    pthread_create(&t[1], NULL, myThreadTwo, (void *)table);
+    pthread_create(&t1, NULL, myThreadTwo, table);
+    pthread_create(&t2, NULL, myThreadOne, table);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
     
-    deleteItem(table, "Lisa");
-    pthread_exit(NULL);
-    //insertItem(table, "Bart", "Simpson");
     displayHashTable(table);
     return 0;
 }
