@@ -50,12 +50,13 @@ void deleteItem(HashItem *table[], const char *key, pthread_mutex_t lock) {
     }
 }
 
-// function for inserting item into the table - acquires lock 
+// function for inserting item into the table - acquires lock during insert critical section
 void insertItem(HashItem *table[], const char *key, const char *value, pthread_mutex_t lock) {
     unsigned int code = hashCode(key);
     HashItem *item = malloc(sizeof(*item));
     if (item != NULL) {
         pthread_mutex_lock(&lock);
+        sleep(2); // using sleep to check whether other thread will wait
         item->key = strdup(key);
         item->value = strdup(value);
         item->next = table[code];
