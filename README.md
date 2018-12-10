@@ -1,3 +1,3 @@
 # final-os-project
 Final group project for OS 2018/2019
-Implementation of concurrent data structures: Queue, linked list, hash table and counter
+Concurrent adaptations of data structures; queue, linked list, hash table and counter - based on original non-concurrent implementations.
