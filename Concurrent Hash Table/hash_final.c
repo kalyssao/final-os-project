@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <pthread/pthread.h>
 
 #define MAX_HASH  1027
@@ -38,14 +39,17 @@ void deleteItem(HashItem *table[], const char *key, pthread_mutex_t lock) {
     while (*link) {
         HashItem *tmp = *link;
         pthread_mutex_lock(&lock);
+        puts("delete lock acquired");
         if (strcmp(tmp->key, key) == 0) {
             *link = tmp->next;  // unlink the list node
             pthread_mutex_unlock(&lock);
+            puts("delete lock released");
             freeItem(tmp);
             break;
         } else {
             link = &(*link)->next;
             pthread_mutex_unlock(&lock);
+            puts("delete lock released");
         }
     }
 }
@@ -56,12 +60,14 @@ void insertItem(HashItem *table[], const char *key, const char *value, pthread_m
     HashItem *item = malloc(sizeof(*item));
     if (item != NULL) {
         pthread_mutex_lock(&lock);
+        puts("insert lock acquired - about to sleep");
         sleep(2); // using sleep to check whether other thread will wait
         item->key = strdup(key);
         item->value = strdup(value);
         item->next = table[code];
         table[code] = item;
-        pthread_mutext_unlock(&lock);
+        puts("insert lock released - item inserted");
+        pthread_mutex_unlock(&lock);
     }
 }
 
@@ -74,19 +80,22 @@ void displayHashTable(HashItem *table[]) {
     }
 }
 
-// testing thread 1
+// testing thread 1 - inserts items into table
 void *myThreadOne(void *arg){
-    pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
-    insertItem((HashItem **)arg, "Bart", "Simpson", lock1);
+    pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+    insertItem((HashItem **)arg, "Bart", "Simpson", lock);
     HashItem * table = (HashItem *)arg;
-    deleteItem((HashItem **)arg, "Lisa", lock1);
+    insertItem((HashItem **)arg, "Lisa", "Simpson", lock);
+    //deleteItem((HashItem **)arg, "Bart", lock);
     return 0;
 }
 
-// testing thread 2
+// testing thread 2 - attempts to delete Bart but Bart is locked when it tries so it can't
 void *myThreadTwo(void *arg){
     pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-    insertItem((HashItem **)arg, "Lisa", "Simpson", lock);
+    //insertItem((HashItem **)arg, "Lisa", "Simpson", lock);
+    deleteItem((HashItem **)arg, "Bart", lock);
+    
     HashItem * table = (HashItem *)arg;
     return 0;
 }
